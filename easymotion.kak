@@ -49,14 +49,14 @@ def easy-motion-on-selections -hidden %{
     }
     exec 'u"mz<space>;'
     easy-motion-rmhl
-    addhl fill EasyMotionBackground
-    addhl replace-ranges em_fg
+    addhl window/ fill EasyMotionBackground
+    addhl window/ replace-ranges em_fg
     eval "%opt{_em_jumps}"
 }
 
 def easy-motion-rmhl %{
-    rmhl fill_EasyMotionBackground
-    rmhl replace_ranges_em_fg
+    rmhl window/fill_EasyMotionBackground
+    rmhl window/replace_ranges_em_fg
 }
 
 def easy-motion-setup-alphabet -hidden %{

@@ -7,7 +7,6 @@ def pydef -params 3 %{ %sh{
         } }
         hook -group pydef global KakEnd .* %{ %sh{rm $file} }
     "
-    echo "$file" >/dev/stderr
 } }
 
 face EasyMotionBackground rgb:aaaaaa

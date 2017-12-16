@@ -10,8 +10,8 @@ def pydef -params 3 %{ %sh{
             for s in f:
                 try:
                     reply = line(s)
-                except:
-                    reply = 'echo -debug $1 error'
+                except Exception as e:
+                    reply = 'echo -debug %~$1 error: {}~'.format(e)
                 with open('$kakfifo', 'w') as r:
                     r.write(reply)"
     (python $file </dev/null 2&>1 >/dev/null) &

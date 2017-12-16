@@ -1,11 +1,32 @@
 def pydef -params 3 %{ %sh{
     file=$(mktemp --suffix=.py)
-    echo "if True: $3" > $file
+    pyfifo="$file".pyfifo
+    kakfifo="$file".kakfifo
+    mkfifo "$pyfifo"
+    mkfifo "$kakfifo"
+    >$file echo "def line(stdin): $3"
+    >>$file echo "while True:
+        with open('$pyfifo', 'r') as f:
+            for s in f:
+                try:
+                    reply = line(s)
+                except:
+                    reply = 'echo -debug $1 error'
+                with open('$kakfifo', 'w') as r:
+                    r.write(reply)"
+    (python $file </dev/null 2&>1 >/dev/null) &
+    pypid=$!
     echo "
-        def -allow-override $1 %{ %sh{
-            echo \"$2\" | python $file
-        } }
-        hook -group pydef global KakEnd .* %{ %sh{rm $file} }
+        def -allow-override $1 %{
+            eval -save-regs r -no-hooks -draft %{
+                reg r \"$2\"
+                edit -debug -scratch *pydef*
+                exec \\%di<c-r>r<esc>
+                write $pyfifo
+            }
+            source $kakfifo
+        }
+        hook -group pydef global KakEnd .* %{ %sh{kill "$pypid"; rm -f "$file" "$pyfifo" "$kakfifo"} }
     "
 } }
 
@@ -22,13 +43,12 @@ def easy-motion-WORD %{ easy-motion-on-regex '\s\K\S+' }
 def easy-motion-line %{ easy-motion-on-regex '^[^\n]+$' }
 
 def easy-motion-on-regex -params 1 %{
-    exec GE<a-\;>s %arg{1} <ret> <a-:>
+    exec -no-hooks GE<a-\;>s %arg{1} <ret> <a-:>
     easy-motion-on-selections
 }
 
-pydef easy-motion-on-selections $kak_opt_em_jumpchars:$kak_timestamp:$kak_selections_desc '
-    import sys
-    jumpchars, timestamp, *descs = sys.stdin.read().strip().split(":")
+pydef easy-motion-on-selections '%opt{em_jumpchars}:%val{timestamp}:%val{selections_desc}' '
+    jumpchars, timestamp, *descs = stdin.strip().split(":")
     fg = timestamp
     jumps = []
     first = None
@@ -39,11 +59,12 @@ pydef easy-motion-on-selections $kak_opt_em_jumpchars:$kak_timestamp:$kak_select
         if first is None:
             first = a + "," + a
 
-    print("select " + first)
-    print("easy-motion-rmhl")
-    print("easy-motion-addhl")
-    print("set window em_fg " + fg)
-    print("on-key %{ %sh{ case $kak_key in " + "\n".join(jumps) + " esac; echo easy-motion-rmhl } }")
+    return "\n".join((
+        "select " + first,
+        "easy-motion-rmhl",
+        "easy-motion-addhl",
+        "set window em_fg " + fg,
+        "on-key %{ %sh{ case $kak_key in " + "\n".join(jumps) + " esac; echo easy-motion-rmhl } }"))
 '
 
 def easy-motion-addhl %{

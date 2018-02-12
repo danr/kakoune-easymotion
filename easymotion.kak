@@ -43,7 +43,7 @@ def easy-motion-WORD %{ easy-motion-on-regex '\s\K\S+' }
 def easy-motion-line %{ easy-motion-on-regex '^[^\n]+$' }
 
 def easy-motion-on-regex -params 1 %{
-    exec -no-hooks GE<a-\;>s %arg{1} <ret> <a-:>
+    exec -no-hooks <space>GE<a-\;>s %arg{1} <ret> "'" <a-:>
     easy-motion-on-selections
 }
 

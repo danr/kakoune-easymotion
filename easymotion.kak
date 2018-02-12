@@ -59,6 +59,8 @@ pydef easy-motion-on-selections '%opt{em_jumpchars}:%val{timestamp}:%val{selecti
         if first is None:
             first = a + "," + a
 
+    jumps.append("*) echo select " + first + " ;;")
+
     return "\n".join((
         "select " + first,
         "easy-motion-rmhl",

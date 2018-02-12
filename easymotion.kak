@@ -57,7 +57,7 @@ pydef 'easy-motion-on-selections -params 0..1' '%opt{em_jumpchars}:%val{timestam
     for char, desc in zip(jumpchars, descs):
         a, h = desc.split(",")
         fg += ":" + a + "," + a + "|{EasyMotionForeground}" + char
-        jumps.append(char + ") echo select " + desc + " ;;")
+        jumps.append(repr(char) + ") echo select " + desc + " ;;")
         if first is None:
             first = a + "," + a
 
@@ -67,8 +67,8 @@ pydef 'easy-motion-on-selections -params 0..1' '%opt{em_jumpchars}:%val{timestam
         "select " + first,
         "easy-motion-rmhl",
         "easy-motion-addhl",
-        "set window em_fg " + fg,
-        "on-key %{ %sh{ case $kak_key in " + "\n".join(jumps) + "esac }; easy-motion-rmhl; " + callback + " }"))
+        "set window em_fg " + repr(fg),
+        "on-key %< %sh< case $kak_key in " + "\n".join(jumps) + "esac >; easy-motion-rmhl; " + callback + " >"))
 }
 
 def easy-motion-addhl %{

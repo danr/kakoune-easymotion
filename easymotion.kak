@@ -38,17 +38,17 @@ try %{
     decl str em_jumpchars abcdefghijklmnopqrstuvwxyz
 }
 
-def easy-motion-word %{ easy-motion-on-regex '\b\w+\b' }
-def easy-motion-WORD %{ easy-motion-on-regex '\s\K\S+' }
-def easy-motion-line %{ easy-motion-on-regex '^[^\n]+$' }
+def easy-motion-word -params 0..1 %{ easy-motion-on-regex '\b\w+\b' %arg{1} }
+def easy-motion-WORD -params 0..1 %{ easy-motion-on-regex '\s\K\S+' %arg{1} }
+def easy-motion-line -params 0..1 %{ easy-motion-on-regex '^[^\n]+$' %arg{1} }
 
-def easy-motion-on-regex -params 1 %{
+def easy-motion-on-regex -params 1..2 %{
     exec -no-hooks <space>GE<a-\;>s %arg{1} <ret> "'" <a-:>
-    easy-motion-on-selections
+    easy-motion-on-selections %arg{2}
 }
 
-pydef easy-motion-on-selections '%opt{em_jumpchars}:%val{timestamp}:%val{selections_desc}' '
-    jumpchars, timestamp, *descs = stdin.strip().split(":")
+pydef 'easy-motion-on-selections -params 0..1' '%opt{em_jumpchars}:%val{timestamp}:%arg{1}:%val{selections_desc}' %{
+    jumpchars, timestamp, callback, *descs = stdin.strip().split(":")
     fg = timestamp
     jumps = []
     first = None
@@ -66,8 +66,8 @@ pydef easy-motion-on-selections '%opt{em_jumpchars}:%val{timestamp}:%val{selecti
         "easy-motion-rmhl",
         "easy-motion-addhl",
         "set window em_fg " + fg,
-        "on-key %{ %sh{ case $kak_key in " + "\n".join(jumps) + " esac; echo easy-motion-rmhl } }"))
-'
+        "on-key %{ %sh{ case $kak_key in " + "\n".join(jumps) + "esac }; easy-motion-rmhl; " + callback + " }"))
+}
 
 def easy-motion-addhl %{
     try %{ addhl window fill EasyMotionBackground }

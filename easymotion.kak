@@ -49,6 +49,8 @@ def easy-motion-on-regex -params 1..2 %{
 
 pydef 'easy-motion-on-selections -params 0..1' '%opt{em_jumpchars}:%val{timestamp}:%arg{1}:%val{selections_desc}' %{
     jumpchars, timestamp, callback, *descs = stdin.strip().split(":")
+    from collections import OrderedDict
+    jumpchars = list(OrderedDict.fromkeys(jumpchars))
     fg = timestamp
     jumps = []
     first = None

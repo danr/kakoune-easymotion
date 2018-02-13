@@ -1,4 +1,6 @@
 # kakoune-easymotion
+​
+[![IRC][IRC Badge]][IRC]
 
 [kakoune](http://kakoune.org) plugin for navigating like the easymotion vim mode
 
@@ -25,3 +27,6 @@ map global user l :easy-motion-line<ret>
 ## License
 
 Unlicense
+
+[IRC]: https://webchat.freenode.net?channels=kakoune
+[IRC Badge]: https://img.shields.io/badge/IRC-%23kakoune-blue.svg

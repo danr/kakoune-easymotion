@@ -43,13 +43,24 @@ def easy-motion-WORD -params 0..1 %{ easy-motion-on-regex '\s\K\S+' %arg{1} }
 def easy-motion-line -params 0..1 %{ easy-motion-on-regex '^[^\n]+$' %arg{1} }
 
 def easy-motion-on-regex -params 1..2 %{
-    exec -no-hooks <space>GE<a-\;>s %arg{1} <ret> "'" <a-:>
-    easy-motion-on-selections %arg{2}
+    eval %{
+        exec -save-regs Z
+        exec '%s' %arg{1} <ret> <a-:>
+        easy-motion %arg{2}
+    }
 }
 
-pydef 'easy-motion-on-selections -params 0..1' '%opt{em_jumpchars}:%val{timestamp}:%arg{1}:%val{selections_desc}' %{
-    jumpchars, timestamp, callback, *descs = stdin.strip().split(":")
+pydef 'easy-motion-on-selections -params 0..2' '%opt{em_jumpchars}|%val{timestamp}|%arg{1}|%arg{2}|%val{selections_desc}|%reg{^}' %{
     from collections import OrderedDict
+    jumpchars, timestamp, rev, callback, descs, restore = stdin.strip().split("|")
+    descs = descs.split(":")
+    restore = restore.split("@")[0]
+    main = restore.split(":")[0]
+    after = filter(lambda d: d > main, descs)
+    before = list(filter(lambda d: d <= main, descs))
+    descs = list(after) + reverse(list(before))
+    if rev == 'reverse':
+        descs = reverse(descs)
     jumpchars = list(OrderedDict.fromkeys(jumpchars))
     fg = timestamp
     jumps = []

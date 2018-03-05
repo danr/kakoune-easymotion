@@ -38,19 +38,26 @@ try %{
     decl str em_jumpchars abcdefghijklmnopqrstuvwxyz
 }
 
-def easy-motion-word -params 0..1 %{ easy-motion-on-regex '\b\w+\b' %arg{1} }
-def easy-motion-WORD -params 0..1 %{ easy-motion-on-regex '\s\K\S+' %arg{1} }
-def easy-motion-line -params 0..1 %{ easy-motion-on-regex '^[^\n]+$' %arg{1} }
+# e: forward, g: backward
+def easy-motion-w -params 0..1 %{ easy-motion-on-regex '\b\w+\b' 'e' %arg{1} }
+def easy-motion-W -params 0..1 %{ easy-motion-on-regex '\s\K\S+' 'e' %arg{1} }
+def easy-motion-j -params 0..1 %{ easy-motion-on-regex '^[^\n]+$' 'e' %arg{1} }
 
-def easy-motion-on-regex -params 1..2 %{
-    exec -no-hooks <space>GE<a-\;>s %arg{1} <ret> "'" <a-:>
-    easy-motion-on-selections %arg{2}
+def easy-motion-b -params 0..1 %{ easy-motion-on-regex '\b\w+\b' 'g' %arg{1} }
+def easy-motion-B -params 0..1 %{ easy-motion-on-regex '\s\K\S+' 'g' %arg{1} }
+def easy-motion-k -params 0..1 %{ easy-motion-on-regex '^[^\n]+$' 'g' %arg{1} }
+
+def easy-motion-on-regex -params 1..3 %{
+    exec -no-hooks <space>G %arg{2} <a-\;>s %arg{1} <ret> "'" <a-:>
+    easy-motion-on-selections %arg{2} %arg{3}
 }
 
-pydef 'easy-motion-on-selections -params 0..1' '%opt{em_jumpchars}:%val{timestamp}:%arg{1}:%val{selections_desc}' %{
-    jumpchars, timestamp, callback, *descs = stdin.strip().split(":")
+pydef 'easy-motion-on-selections -params 0..2' '%opt{em_jumpchars}:%val{timestamp}:%arg{1}:%arg{2}:%val{selections_desc}' %{
+    jumpchars, timestamp, direction, callback, *descs = stdin.strip().split(":")
     from collections import OrderedDict
     jumpchars = list(OrderedDict.fromkeys(jumpchars))
+    if direction == 'g':
+        descs.reverse()
     fg = timestamp
     jumps = []
     first = None
@@ -81,3 +88,11 @@ def easy-motion-rmhl %{
     rmhl window/replace_ranges_em_fg
 }
 
+# user modes can't have dash (yet)
+declare-user-mode easymotion
+map global easymotion w ':easy-motion-w<ret>' -docstring 'word →'
+map global easymotion W ':easy-motion-W<ret>' -docstring 'WORD →'
+map global easymotion j ':easy-motion-j<ret>' -docstring 'line ↓'
+map global easymotion b ':easy-motion-b<ret>' -docstring 'word ←'
+map global easymotion B ':easy-motion-B<ret>' -docstring 'WORD ←'
+map global easymotion k ':easy-motion-k<ret>' -docstring 'line ↑'

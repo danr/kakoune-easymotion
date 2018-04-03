@@ -48,7 +48,7 @@ def easy-motion-B -params 0..1 %{ easy-motion-on-regex '\s\K\S+' 'g' %arg{1} }
 def easy-motion-k -params 0..1 %{ easy-motion-on-regex '^[^\n]+$' 'g' %arg{1} }
 
 def easy-motion-on-regex -params 1..3 %{
-    exec -no-hooks <space>G %arg{2} <a-\;>s %arg{1} <ret> "'" <a-:>
+    exec -no-hooks <space>G %arg{2} <a-\;>s %arg{1} <ret> ) <a-:>
     easy-motion-on-selections %arg{2} %arg{3}
 }
 

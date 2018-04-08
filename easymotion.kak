@@ -29,8 +29,8 @@ def pydef -params 3 %{ %sh{
     "
 } }
 
-face EasyMotionBackground rgb:aaaaaa
-face EasyMotionForeground red+b
+face global EasyMotionBackground rgb:aaaaaa
+face global EasyMotionForeground red+b
 
 try %{
     decl range-specs em_fg

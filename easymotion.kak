@@ -21,10 +21,9 @@ def pydef -params 3 %{ %sh{
             eval -save-regs r -no-hooks -draft %{
                 reg r \"$2\"
                 edit -debug -scratch *pydef*
-                exec \\%di<c-r>r<esc>
-                write $pyfifo
+                exec '%di<c-r>r<esc>%|tee<space>$pyfifo<ret>'
             }
-            source $kakfifo
+            %sh{ cat $kakfifo }
         }
         hook -group pydef global KakEnd .* %{ %sh{kill "$pypid"; rm -f "$file" "$pyfifo" "$kakfifo"} }
     "

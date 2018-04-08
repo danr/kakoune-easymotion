@@ -51,8 +51,9 @@ def easy-motion-on-regex -params 1..3 %{
     easy-motion-on-selections %arg{2} %arg{3}
 }
 
-pydef 'easy-motion-on-selections -params 0..2' '%opt{em_jumpchars}:%val{timestamp}:%arg{1}:%arg{2}:%val{selections_desc}' %{
-    jumpchars, timestamp, direction, callback, *descs = stdin.strip().split(":")
+pydef 'easy-motion-on-selections -params 0..2' '%opt{em_jumpchars}^%val{timestamp}^%arg{1}^%arg{2}^%val{selections_desc}' %{
+    jumpchars, timestamp, direction, callback, descs = stdin.strip().split("^")
+    descs = descs.split(":")
     from collections import OrderedDict
     jumpchars = list(OrderedDict.fromkeys(jumpchars))
     if direction == 'g':

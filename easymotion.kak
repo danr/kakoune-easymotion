@@ -29,8 +29,8 @@ def pydef -params 3 %{ %sh{
     "
 } }
 
-face global EasyMotionBackground rgb:aaaaaa
-face global EasyMotionForeground red+b
+face EasyMotionBackground rgb:aaaaaa
+face EasyMotionForeground red+b
 
 try %{
     decl range-specs em_fg
@@ -93,7 +93,7 @@ def easy-motion-rmhl %{
 }
 
 # user modes can't have dash (yet)
-declare-user-mode easymotion
+try %{declare-user-mode easymotion}
 map global easymotion f     ':easy-motion-f<ret>'     -docstring 'char →'
 map global easymotion w     ':easy-motion-w<ret>'     -docstring 'word →'
 map global easymotion W     ':easy-motion-W<ret>'     -docstring 'WORD →'

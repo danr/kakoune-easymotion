@@ -41,10 +41,12 @@ try %{
 def easy-motion-w -params 0..1 %{ easy-motion-on-regex '\b\w+\b' 'e' %arg{1} }
 def easy-motion-W -params 0..1 %{ easy-motion-on-regex '\s\K\S+' 'e' %arg{1} }
 def easy-motion-j -params 0..1 %{ easy-motion-on-regex '^[^\n]+$' 'e' %arg{1} }
+def easy-motion-f -params 0..1 %{ on-key %{ easy-motion-on-regex "\Q%val{key}\E" 'e' %arg{1} } }
 
 def easy-motion-b -params 0..1 %{ easy-motion-on-regex '\b\w+\b' 'g' %arg{1} }
 def easy-motion-B -params 0..1 %{ easy-motion-on-regex '\s\K\S+' 'g' %arg{1} }
 def easy-motion-k -params 0..1 %{ easy-motion-on-regex '^[^\n]+$' 'g' %arg{1} }
+def easy-motion-alt-f -params 0..1 %{ on-key %{ easy-motion-on-regex "\Q%val{key}\E" 'g' %arg{1} } }
 
 def easy-motion-on-regex -params 1..3 %{
     exec -no-hooks <space>G %arg{2} <a-\;>s %arg{1} <ret> ) <a-:>
@@ -92,9 +94,11 @@ def easy-motion-rmhl %{
 
 # user modes can't have dash (yet)
 declare-user-mode easymotion
-map global easymotion w ':easy-motion-w<ret>' -docstring 'word →'
-map global easymotion W ':easy-motion-W<ret>' -docstring 'WORD →'
-map global easymotion j ':easy-motion-j<ret>' -docstring 'line ↓'
-map global easymotion b ':easy-motion-b<ret>' -docstring 'word ←'
-map global easymotion B ':easy-motion-B<ret>' -docstring 'WORD ←'
-map global easymotion k ':easy-motion-k<ret>' -docstring 'line ↑'
+map global easymotion f     ':easy-motion-f<ret>'     -docstring 'char →'
+map global easymotion w     ':easy-motion-w<ret>'     -docstring 'word →'
+map global easymotion W     ':easy-motion-W<ret>'     -docstring 'WORD →'
+map global easymotion j     ':easy-motion-j<ret>'     -docstring 'line ↓'
+map global easymotion <a-f> ':easy-motion-alt-f<ret>' -docstring 'char ←'
+map global easymotion q     ':easy-motion-b<ret>'     -docstring 'word ←'
+map global easymotion Q     ':easy-motion-B<ret>'     -docstring 'WORD ←'
+map global easymotion k     ':easy-motion-k<ret>'     -docstring 'line ↑'

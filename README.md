@@ -13,9 +13,11 @@ Add `easymotion.kak` to your autoload directory,`~/.config/kak/autoload`, or sou
 ## Usage
 
 The script defines a few commands:
+  - `easy-motion-f`
   - `easy-motion-w`
   - `easy-motion-W`
   - `easy-motion-j`
+  - `easy-motion-alt-f`
   - `easy-motion-b`
   - `easy-motion-B`
   - `easy-motion-k`

@@ -17,7 +17,7 @@ def pydef -params 3 %{ %sh{
     (python $file) > /dev/null 2>&1 </dev/null &
     pypid=$!
     echo "
-        def -allow-override $1 %{
+        def -override $1 %{
             eval -save-regs r -no-hooks -draft %{
                 reg r \"$2\"
                 edit -debug -scratch *pydef*
@@ -29,8 +29,8 @@ def pydef -params 3 %{ %sh{
     "
 } }
 
-face EasyMotionBackground rgb:aaaaaa
-face EasyMotionForeground red+b
+face global EasyMotionBackground rgb:aaaaaa
+face global EasyMotionForeground red+b
 
 try %{
     decl range-specs em_fg

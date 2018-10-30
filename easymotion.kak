@@ -1,4 +1,4 @@
-def pydef -params 3 %{ %sh{
+def pydef -params 3 %{ eval %sh{
     file=$(mktemp --suffix=.py)
     pyfifo="$file".pyfifo
     kakfifo="$file".kakfifo
@@ -23,9 +23,9 @@ def pydef -params 3 %{ %sh{
                 edit -debug -scratch *pydef*
                 exec '%di<c-r>r<esc>%|tee<space>$pyfifo<ret>'
             }
-            %sh{ cat $kakfifo }
+            eval %sh{ cat $kakfifo }
         }
-        hook -group pydef global KakEnd .* %{ %sh{kill "$pypid"; rm -f "$file" "$pyfifo" "$kakfifo"} }
+        hook -group pydef global KakEnd .* %{ nop %sh{kill "$pypid"; rm -f "$file" "$pyfifo" "$kakfifo"} }
     "
 } }
 
@@ -49,13 +49,13 @@ def easy-motion-k -params 0..1 %{ easy-motion-on-regex '^[^\n]+$' 'g' %arg{1} }
 def easy-motion-alt-f -params 0..1 %{ on-key %{ easy-motion-on-regex "\Q%val{key}\E" 'g' %arg{1} } }
 
 def easy-motion-on-regex -params 1..3 %{
-    exec -no-hooks <space>G %arg{2} <a-\;>s %arg{1} <ret> ) <a-:>
+    exec <space>G %arg{2} <a-\;>s %arg{1} <ret> ) <a-:>
     easy-motion-on-selections %arg{2} %arg{3}
 }
 
 pydef 'easy-motion-on-selections -params 0..2' '%opt{em_jumpchars}^%val{timestamp}^%arg{1}^%arg{2}^%val{selections_desc}' %{
     jumpchars, timestamp, direction, callback, descs = stdin.strip().split("^")
-    descs = descs.split(":")
+    descs = descs.split(" ")
     from collections import OrderedDict
     jumpchars = list(OrderedDict.fromkeys(jumpchars))
     if direction == 'g':
@@ -65,31 +65,31 @@ pydef 'easy-motion-on-selections -params 0..2' '%opt{em_jumpchars}^%val{timestam
     first = None
     for char, desc in zip(jumpchars, descs):
         a, h = desc.split(",")
-        fg += ":" + a + "," + a + "|{EasyMotionForeground}" + char
+        fg += " " + a + "," + a + "|{EasyMotionForeground}" + char
         jumps.append(repr(char) + ") echo select " + desc + " ;;")
         if first is None:
             first = a + "," + a
 
     jumps.append("*) echo select " + first + " ;;")
 
-    return "\n".join((
+    return "\\n".join((
         "select " + first,
         "easy-motion-rmhl",
         "easy-motion-addhl",
-        "set window em_fg " + repr(fg),
-        "on-key %< %sh< case $kak_key in " + "\n".join(jumps),
+        "set window em_fg " + fg,
+        "on-key %< eval %sh< case $kak_key in " + "\\n".join(jumps),
         "*) echo select " + first,
         "esac >; easy-motion-rmhl; " + callback + " >"))
 }
 
 def easy-motion-addhl %{
-    try %{ addhl window fill EasyMotionBackground }
-    try %{ addhl window replace-ranges em_fg }
+    try %{ addhl window/ fill EasyMotionBackground }
+    try %{ addhl window/ replace-ranges em_fg }
 }
 
 def easy-motion-rmhl %{
     rmhl window/fill_EasyMotionBackground
-    rmhl window/replace_ranges_em_fg
+    rmhl window/replace-ranges_em_fg
 }
 
 # user modes can't have dash (yet)

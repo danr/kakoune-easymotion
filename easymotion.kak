@@ -72,12 +72,12 @@ pydef 'easy-motion-on-selections -params 0..2' '%opt{em_jumpchars}^%val{timestam
 
     jumps.append("*) echo select " + first + " ;;")
 
-    return "\\n".join((
+    return "\n".join((
         "select " + first,
         "easy-motion-rmhl",
         "easy-motion-addhl",
         "set window em_fg " + fg,
-        "on-key %< eval %sh< case $kak_key in " + "\\n".join(jumps),
+        "on-key %< eval %sh< case $kak_key in " + "\n".join(jumps),
         "*) echo select " + first,
         "esac >; easy-motion-rmhl; " + callback + " >"))
 }

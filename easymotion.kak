@@ -27,6 +27,7 @@ def pydef -params 3 %{ eval %sh{
 
 face global EasyMotionBackground rgb:aaaaaa
 face global EasyMotionForeground red+b
+face global EasyMotionSelected yellow+F
 
 try %{
     decl range-specs em_fg
@@ -34,48 +35,87 @@ try %{
 }
 
 # e: forward, g: backward
-def easy-motion-w -params 0..1 %{ easy-motion-on-regex '\b\w+\b' 'e' %arg{1} }
-def easy-motion-W -params 0..1 %{ easy-motion-on-regex '\s\K\S+' 'e' %arg{1} }
-def easy-motion-j -params 0..1 %{ easy-motion-on-regex '^[^\n]+$' 'e' %arg{1} }
-def easy-motion-f -params 0..1 %{ on-key %{ easy-motion-on-regex "\Q%val{key}\E" 'e' %arg{1} } }
+def easy-motion-w -params 0..2 %{ easy-motion-on-regex '\b\w+\b' 'e' %arg{1} %arg{2} }
+def easy-motion-W -params 0..2 %{ easy-motion-on-regex '\s\K\S+' 'e' %arg{1} %arg{2} }
+def easy-motion-j -params 0..2 %{ easy-motion-on-regex '^[^\n]+$' 'e' %arg{1} %arg{2} }
+def easy-motion-f -params 0..2 %{ on-key %{ easy-motion-on-regex "\Q%val{key}\E" 'e' %arg{1} %arg{2} } }
 
-def easy-motion-b -params 0..1 %{ easy-motion-on-regex '\b\w+\b' 'g' %arg{1} }
-def easy-motion-B -params 0..1 %{ easy-motion-on-regex '\s\K\S+' 'g' %arg{1} }
-def easy-motion-k -params 0..1 %{ easy-motion-on-regex '^[^\n]+$' 'g' %arg{1} }
-def easy-motion-alt-f -params 0..1 %{ on-key %{ easy-motion-on-regex "\Q%val{key}\E" 'g' %arg{1} } }
+def easy-motion-b -params 0..2 %{ easy-motion-on-regex '\b\w+\b' 'g' %arg{1} %arg{2} }
+def easy-motion-B -params 0..2 %{ easy-motion-on-regex '\s\K\S+' 'g' %arg{1} %arg{2} }
+def easy-motion-k -params 0..2 %{ easy-motion-on-regex '^[^\n]+$' 'g' %arg{1} %arg{2} }
+def easy-motion-alt-f -params 0..2 %{ on-key %{ easy-motion-on-regex "\Q%val{key}\E" 'g' %arg{1} %arg{2} } }
 
-def easy-motion-on-regex -params 1..3 %{
+def easy-motion-on-regex -params 1..4 %{
     exec <space>G %arg{2} <a-\;>s %arg{1} <ret> ) <a-:>
-    easy-motion-on-selections %arg{2} %arg{3}
+    easy-motion-on-selections %arg{2} %arg{3} %arg{4}
 }
 
-pydef 'easy-motion-on-selections -params 0..2' '%opt{em_jumpchars}^%val{timestamp}^%arg{1}^%arg{2}^%val{selections_desc}' %{
-    jumpchars, timestamp, direction, callback, descs = stdin.strip().split("^")
+def _on_key -hidden -params .. %{
+    on-key %{ eval %sh{
+        while [[ $# > 1 ]]; do
+            key=$1; shift
+            cmd=$1; shift
+            if [[ $kak_key == $key ]]; then
+                echo "$cmd"
+                exit;
+            fi
+        done
+        echo "$1"
+    }}
+}
+
+pydef 'easy-motion-on-selections -params 0..3' '%opt{em_jumpchars}^%val{timestamp}^%arg{1}^%arg{2}^%arg{3}^%val{selections_desc}' %{
+    jumpchars, timestamp, direction, callback_chosen, callback_cancel, descs = stdin.strip().split("^")
     descs = descs.split(" ")
-    from collections import OrderedDict
+    from collections import OrderedDict, defaultdict
     jumpchars = list(OrderedDict.fromkeys(jumpchars))
     if direction == 'g':
         descs.reverse()
     fg = timestamp
     jumps = []
     first = None
-    for char, desc in zip(jumpchars, descs):
+    cs = list(jumpchars)
+    cs_set = set(cs)
+    while len(cs) < len(descs):
+        c = cs.pop(0)
+        cs += [ c + c2 for c2 in jumpchars ]
+        cs_set |= set(cs)
+    d = {}
+    fgs = defaultdict(lambda: 'set window em_fg ' + timestamp)
+    for chars, desc in zip(cs, descs):
         a, h = desc.split(",")
-        fg += " " + a + "," + a + "|{EasyMotionForeground}" + char
-        jumps.append(repr(char) + ") echo select " + desc + " ;;")
+        l, c = a.split(".")
+        a2 = l + "." + str(int(c) + len(chars) - 1)
+        fg += " " + a + "," + a2 + "|{EasyMotionForeground}" + chars
+        for i in range(1,len(chars)):
+            chars_i = chars[:i]
+            a1 = l + "." + str(int(c) + len(chars_i) - 1)
+            a12 = l + "." + str(int(c) + len(chars_i))
+            fgs[chars_i] += " " + a + "," + a1 + "|{EasyMotionSelected}" + chars_i
+            fgs[chars_i] += " " + a12 + "," + a2 + "|{EasyMotionForeground}" + chars[i:]
+        d[chars] = "select " + desc + ';easy-motion-rmhl;' + callback_chosen
         if first is None:
             first = a + "," + a
-
-    jumps.append("*) echo select " + first + " ;;")
-
+    def q(s):
+        return "'" + s.replace("'", "''") + "'"
+    def dfs(chars):
+        if chars in d:
+            return d[chars]
+        out = ['_on_key']
+        if chars:
+            out = [fgs[chars] + ';' + out[0]]
+        for c in jumpchars:
+            chars_c = chars + c
+            if chars_c not in cs_set:
+                break
+            out += [c, q(dfs(chars_c))]
+        return ' '.join(out + [q(';easy-motion-rmhl;' + callback_cancel)])
     return "\n".join((
         "select " + first,
         "easy-motion-rmhl",
         "easy-motion-addhl",
         "set window em_fg " + fg,
-        "on-key %< eval %sh< case $kak_key in " + "\n".join(jumps),
-        "*) echo select " + first,
-        "esac >; easy-motion-rmhl; " + callback + " >"))
+        dfs('')))
 }
 
 def easy-motion-addhl %{
@@ -90,11 +130,11 @@ def easy-motion-rmhl %{
 
 # user modes can't have dash (yet)
 try %{declare-user-mode easymotion}
-map global easymotion f     ':easy-motion-f<ret>'     -docstring 'char →'
-map global easymotion w     ':easy-motion-w<ret>'     -docstring 'word →'
-map global easymotion W     ':easy-motion-W<ret>'     -docstring 'WORD →'
-map global easymotion j     ':easy-motion-j<ret>'     -docstring 'line ↓'
-map global easymotion <a-f> ':easy-motion-alt-f<ret>' -docstring 'char ←'
-map global easymotion q     ':easy-motion-b<ret>'     -docstring 'word ←'
-map global easymotion Q     ':easy-motion-B<ret>'     -docstring 'WORD ←'
-map global easymotion k     ':easy-motion-k<ret>'     -docstring 'line ↑'
+map global easymotion f     ': easy-motion-f<ret>'     -docstring 'char →'
+map global easymotion w     ': easy-motion-w<ret>'     -docstring 'word →'
+map global easymotion W     ': easy-motion-W<ret>'     -docstring 'WORD →'
+map global easymotion j     ': easy-motion-j<ret>'     -docstring 'line ↓'
+map global easymotion <a-f> ': easy-motion-alt-f<ret>' -docstring 'char ←'
+map global easymotion q     ': easy-motion-b<ret>'     -docstring 'word ←'
+map global easymotion Q     ': easy-motion-B<ret>'     -docstring 'WORD ←'
+map global easymotion k     ': easy-motion-k<ret>'     -docstring 'line ↑'

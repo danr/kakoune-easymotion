@@ -18,11 +18,7 @@ def pydef -params 3 %{ eval %sh{
     pypid=$!
     echo "
         def -override $1 %{
-            eval -save-regs r -no-hooks -draft %{
-                reg r \"$2\"
-                edit -debug -scratch *pydef*
-                exec '%di<c-r>r<esc>%|tee<space>$pyfifo<ret>'
-            }
+            echo -to-file $pyfifo \"$2\"
             eval %sh{ cat $kakfifo }
         }
         hook -group pydef global KakEnd .* %{ nop %sh{kill "$pypid"; rm -f "$file" "$pyfifo" "$kakfifo"} }

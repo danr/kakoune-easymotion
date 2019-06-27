@@ -6,7 +6,7 @@ def pydef -params 3 %{ eval %sh{
     mkfifo "$kakfifo"
     >$file echo "def line(stdin): $3"
     >>$file echo "while True:
-        with open('$pyfifo', 'r') as f:
+        with open('$pyfifo', 'r', 1) as f:
             for s in f:
                 try:
                     reply = line(s)

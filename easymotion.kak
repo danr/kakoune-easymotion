@@ -66,6 +66,8 @@ def _on_key -hidden -params .. %{
 
 pydef 'easy-motion-on-selections -params 0..3' '%opt{em_jumpchars}^%val{timestamp}^%arg{1}^%arg{2}^%arg{3}^%val{selections_desc}' %{
     jumpchars, timestamp, direction, callback_chosen, callback_cancel, descs = stdin.strip().split("^")
+    if len(jumpchars) <= 1:
+        return 'fail em_jumpchars needs length at least two'
     descs = descs.split(" ")
     from collections import OrderedDict, defaultdict
     jumpchars = list(OrderedDict.fromkeys(jumpchars))
@@ -82,22 +84,22 @@ pydef 'easy-motion-on-selections -params 0..3' '%opt{em_jumpchars}^%val{timestam
         cs_set |= set(cs)
     d = {}
     fgs = defaultdict(lambda: 'set window em_fg ' + timestamp)
+    def q(s):
+        return "'" + s.replace("'", "''") + "'"
     for chars, desc in zip(cs, descs):
         a, h = desc.split(",")
         l, c = a.split(".")
         a2 = l + "." + str(int(c) + len(chars) - 1)
-        fg += " " + a + "," + a2 + "|{EasyMotionForeground}" + chars
+        fg += " " + q(a + "," + a2 + "|{EasyMotionForeground}" + chars)
         for i in range(1,len(chars)):
             chars_i = chars[:i]
             a1 = l + "." + str(int(c) + len(chars_i) - 1)
             a12 = l + "." + str(int(c) + len(chars_i))
-            fgs[chars_i] += " " + a + "," + a1 + "|{EasyMotionSelected}" + chars_i
-            fgs[chars_i] += " " + a12 + "," + a2 + "|{EasyMotionForeground}" + chars[i:]
+            fgs[chars_i] += " " + q(a + "," + a1 + "|{EasyMotionSelected}" + chars_i)
+            fgs[chars_i] += " " + q(a12 + "," + a2 + "|{EasyMotionForeground}" + chars[i:])
         d[chars] = "select " + desc + ';easy-motion-rmhl;' + callback_chosen
         if first is None:
             first = a + "," + a
-    def q(s):
-        return "'" + s.replace("'", "''") + "'"
     def dfs(chars):
         if chars in d:
             return d[chars]
@@ -108,7 +110,7 @@ pydef 'easy-motion-on-selections -params 0..3' '%opt{em_jumpchars}^%val{timestam
             chars_c = chars + c
             if chars_c not in cs_set:
                 break
-            out += [c, q(dfs(chars_c))]
+            out += [q(c), q(dfs(chars_c))]
         return ' '.join(out + [q(';easy-motion-rmhl;' + callback_cancel)])
     return "\n".join((
         "select " + first,

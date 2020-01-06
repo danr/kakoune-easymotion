@@ -1,19 +1,19 @@
 def pydef -params 3 %{ eval %sh{
-    file=$(mktemp --suffix=.py)
+    file="$(mktemp)".py
     pyfifo="$file".pyfifo
     kakfifo="$file".kakfifo
     mkfifo "$pyfifo"
     mkfifo "$kakfifo"
-    >$file echo "def line(stdin): $3"
-    >>$file echo "while True:
-        with open('$pyfifo', 'r', 1) as f:
+    >$file printf "def line(stdin): %s\n" "$3"
+    >>$file printf "while True:
+        with open('%s', 'r', 1) as f:
             for s in f:
                 try:
                     reply = line(s)
                 except Exception as e:
-                    reply = 'echo -debug %~$1 error: {}~'.format(e)
-                with open('$kakfifo', 'w') as r:
-                    r.write(reply)"
+                    reply = 'echo -debug %%~%s error: {}~'.format(e)
+                with open('%s', 'w') as r:
+                    r.write(reply)" "$pyfifo" "$1" "$kakfifo"
     (python $file) > /dev/null 2>&1 </dev/null &
     pypid=$!
     echo "

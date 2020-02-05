@@ -32,6 +32,7 @@ face global EasyMotionSelected yellow+b
 try %{
     decl range-specs em_fg
     decl str em_jumpchars abcdefghijklmnopqrstuvwxyz
+    decl -hidden str _scrolloff
 }
 
 # e: forward, g: backward
@@ -45,9 +46,21 @@ def easy-motion-B -params 0..2 %{ easy-motion-on-regex '\s\K\S+' 'g' %arg{1} %ar
 def easy-motion-k -params 0..2 %{ easy-motion-on-regex '^[^\n]+$' 'g' %arg{1} %arg{2} }
 def easy-motion-alt-f -params 0..2 %{ on-key %{ easy-motion-on-regex "\Q%val{key}\E" 'g' %arg{1} %arg{2} } }
 
+def easy-motion-word -params 0..2 %{ easy-motion-on-regex '\b\w+\b' 'bglGt' %arg{1} %arg{2} }
+def easy-motion-WORD -params 0..2 %{ easy-motion-on-regex '\s\K\S+' 'bglGt' %arg{1} %arg{2} }
+def easy-motion-line -params 0..2 %{ easy-motion-on-regex '^[^\n]+$' 'bglGt' %arg{1} %arg{2} }
+def easy-motion-char -params 0..2 %{ on-key %{ easy-motion-on-regex "\Q%val{key}\E" 'bglGt' %arg{1} %arg{2} } }
+
 def easy-motion-on-regex -params 1..4 %{
+    set-option window _scrolloff %opt{scrolloff}
+    set-option window scrolloff 0,0
+
     exec <space>G %arg{2} <a-\;>s %arg{1} <ret> ) <a-:>
     easy-motion-on-selections %arg{2} %arg{3} %arg{4}
+
+    hook window -once NormalKey .* %{
+        set-option window scrolloff %opt{_scrolloff}
+    }
 }
 
 def _on_key -hidden -params .. %{

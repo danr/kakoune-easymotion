@@ -36,15 +36,15 @@ try %{
 }
 
 # e: forward, g: backward
-def easy-motion-w -params 0..2 %{ easy-motion-on-regex '\b\w+\b' 'e' %arg{1} %arg{2} }
-def easy-motion-W -params 0..2 %{ easy-motion-on-regex '\s\K\S+' 'e' %arg{1} %arg{2} }
-def easy-motion-j -params 0..2 %{ easy-motion-on-regex '^[^\n]+$' 'e' %arg{1} %arg{2} }
-def easy-motion-f -params 0..2 %{ on-key %{ easy-motion-on-regex "\Q%val{key}\E" 'e' %arg{1} %arg{2} } }
+def easy-motion-w -params 0..2 %{ easy-motion-on-regex '\b\w+\b' 'bGl' %arg{1} %arg{2} }
+def easy-motion-W -params 0..2 %{ easy-motion-on-regex '\s\K\S+' 'bGl' %arg{1} %arg{2} }
+def easy-motion-j -params 0..2 %{ easy-motion-on-regex '^[^\n]+$' 'bGl' %arg{1} %arg{2} }
+def easy-motion-f -params 0..2 %{ on-key %{ easy-motion-on-regex "\Q%val{key}\E" 'bGl' %arg{1} %arg{2} } }
 
-def easy-motion-b -params 0..2 %{ easy-motion-on-regex '\b\w+\b' 'g' %arg{1} %arg{2} }
-def easy-motion-B -params 0..2 %{ easy-motion-on-regex '\s\K\S+' 'g' %arg{1} %arg{2} }
-def easy-motion-k -params 0..2 %{ easy-motion-on-regex '^[^\n]+$' 'g' %arg{1} %arg{2} }
-def easy-motion-alt-f -params 0..2 %{ on-key %{ easy-motion-on-regex "\Q%val{key}\E" 'g' %arg{1} %arg{2} } }
+def easy-motion-b -params 0..2 %{ easy-motion-on-regex '\b\w+\b' 't' %arg{1} %arg{2} }
+def easy-motion-B -params 0..2 %{ easy-motion-on-regex '\s\K\S+' 't' %arg{1} %arg{2} }
+def easy-motion-k -params 0..2 %{ easy-motion-on-regex '^[^\n]+$' 't' %arg{1} %arg{2} }
+def easy-motion-alt-f -params 0..2 %{ on-key %{ easy-motion-on-regex "\Q%val{key}\E" 't' %arg{1} %arg{2} } }
 
 def easy-motion-word -params 0..2 %{ easy-motion-on-regex '\b\w+\b' 'bglGt' %arg{1} %arg{2} }
 def easy-motion-WORD -params 0..2 %{ easy-motion-on-regex '\s\K\S+' 'bglGt' %arg{1} %arg{2} }
@@ -84,7 +84,7 @@ pydef 'easy-motion-on-selections -params 0..3' '%opt{em_jumpchars}^%val{timestam
     descs = descs.split(" ")
     from collections import OrderedDict, defaultdict
     jumpchars = list(OrderedDict.fromkeys(jumpchars))
-    if direction == 'g':
+    if direction == 't':
         descs.reverse()
     fg = timestamp
     jumps = []

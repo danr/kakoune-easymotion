@@ -61,6 +61,9 @@ def easy-motion-on-regex -params 1..4 %{
     hook window -once NormalKey .* %{
         set-option window scrolloff %opt{_scrolloff}
     }
+    hook window -once NormalIdle .* %{
+        set-option window scrolloff %opt{_scrolloff}
+    }
 }
 
 def _on_key -hidden -params .. %{

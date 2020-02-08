@@ -99,7 +99,7 @@ pydef 'easy-motion-on-selections -params 0..3' '%opt{em_jumpchars}^%val{timestam
         cs += [ c + c2 for c2 in jumpchars ]
         cs_set |= set(cs)
     d = {}
-    fgs = defaultdict(lambda: 'set window em_fg ' + timestamp)
+    fgs = dict()
     def q(s):
         return "'" + s.replace("'", "''") + "'"
     for chars, desc in zip(cs, descs):
@@ -111,6 +111,8 @@ pydef 'easy-motion-on-selections -params 0..3' '%opt{em_jumpchars}^%val{timestam
             chars_i = chars[:i]
             a1 = l + "." + str(int(c) + len(chars_i) - 1)
             a12 = l + "." + str(int(c) + len(chars_i))
+            if chars_i not in fgs:
+                fgs[chars_i] = 'select ' + a + ',' + a + '; set window em_fg ' + timestamp
             fgs[chars_i] += " " + q(a + "," + a1 + "|{EasyMotionSelected}" + chars_i)
             fgs[chars_i] += " " + q(a12 + "," + a2 + "|{EasyMotionForeground}" + chars[i:])
         d[chars] = "select " + desc + ';_easy-motion-rmhl;' + callback_chosen
@@ -121,7 +123,7 @@ pydef 'easy-motion-on-selections -params 0..3' '%opt{em_jumpchars}^%val{timestam
             return d[chars]
         out = ['_on_key']
         if chars:
-            out = [fgs[chars] + ';' + out[0]]
+            out = [fgs.get(chars, 'set window em_fg ' + timestamp) + ';' + out[0]]
         for c in jumpchars:
             chars_c = chars + c
             if chars_c not in cs_set:

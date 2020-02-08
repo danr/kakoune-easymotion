@@ -4,7 +4,7 @@
 
 [kakoune](http://kakoune.org) plugin for navigating like the easymotion vim mode
 
-[![demo](https://asciinema.org/a/139545.png)](https://asciinema.org/a/139545)
+![demo](https://github.com/danr/kakoune-easymotion/blob/master/recording.gif?raw=true)
 
 ## Setup
 
@@ -22,7 +22,7 @@ The script defines a few commands:
   - `easy-motion-B`
   - `easy-motion-k`
   - `easy-motion-on-regex`
- 
+
 It uses one option, `em_jumpchars` which defaults to `a..z`,
 and two faces, `EasyMotionForeground` and `EasyMotionBackground`.
 They default to red and light grey.

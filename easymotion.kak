@@ -65,10 +65,10 @@ def easy-motion-on-regex -params 1..4 %{
 
 def _on_key -hidden -params .. %{
     on-key %{ eval %sh{
-        while [[ $# > 1 ]]; do
+        while test $# -ge 2; do
             key=$1; shift
             cmd=$1; shift
-            if [[ $kak_key == $key ]]; then
+            if test "$kak_key" = "$key"; then
                 echo "$cmd"
                 exit;
             fi

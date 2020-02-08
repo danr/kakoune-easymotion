@@ -110,7 +110,7 @@ pydef 'easy-motion-on-selections -params 0..3' '%opt{em_jumpchars}^%val{timestam
             a12 = l + "." + str(int(c) + len(chars_i))
             fgs[chars_i] += " " + q(a + "," + a1 + "|{EasyMotionSelected}" + chars_i)
             fgs[chars_i] += " " + q(a12 + "," + a2 + "|{EasyMotionForeground}" + chars[i:])
-        d[chars] = "select " + desc + ';easy-motion-rmhl;' + callback_chosen
+        d[chars] = "select " + desc + ';_easy-motion-rmhl;' + callback_chosen
         if first is None:
             first = a + "," + a
     def dfs(chars):
@@ -124,21 +124,21 @@ pydef 'easy-motion-on-selections -params 0..3' '%opt{em_jumpchars}^%val{timestam
             if chars_c not in cs_set:
                 break
             out += [q(c), q(dfs(chars_c))]
-        return ' '.join(out + [q(';easy-motion-rmhl;' + callback_cancel)])
+        return ' '.join(out + [q(';_easy-motion-rmhl;' + callback_cancel)])
     return "\n".join((
         "select " + first,
-        "easy-motion-rmhl",
-        "easy-motion-addhl",
+        "_easy-motion-rmhl",
+        "_easy-motion-addhl",
         "set window em_fg " + fg,
         dfs('')))
 }
 
-def easy-motion-addhl %{
+def -hidden _easy-motion-addhl %{
     try %{ addhl window/ fill EasyMotionBackground }
     try %{ addhl window/ replace-ranges em_fg }
 }
 
-def easy-motion-rmhl %{
+def -hidden _easy-motion-rmhl %{
     rmhl window/fill_EasyMotionBackground
     rmhl window/replace-ranges_em_fg
 }

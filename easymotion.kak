@@ -80,11 +80,12 @@ def _on_key -hidden -params .. %{
     }}
 }
 
-pydef 'easy-motion-on-selections -params 0..3' '%opt{em_jumpchars}^%val{timestamp}^%arg{1}^%arg{2}^%arg{3}^%val{selections_desc}' %{
+pydef 'easy-motion-on-selections -params ..3' '%opt{em_jumpchars}^%val{timestamp}^%arg{1}^%arg{2}^%arg{3}^%val{selections_desc}' %{
     jumpchars, timestamp, direction, callback_chosen, callback_cancel, descs = stdin.strip().split("^")
     if len(jumpchars) <= 1:
         return 'fail em_jumpchars needs length at least two'
-    descs = descs.split(" ")
+    import re
+    descs = re.split("[^\d,.]+", descs)
     from collections import OrderedDict, defaultdict
     jumpchars = list(OrderedDict.fromkeys(jumpchars))
     if direction == 't':

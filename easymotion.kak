@@ -55,7 +55,7 @@ def easy-motion-on-regex -params 1..4 %{
     set-option window _scrolloff %opt{scrolloff}
     set-option window scrolloff 0,0
 
-    exec <space>G %arg{2} <a-\;>s %arg{1} <ret> ) <a-:>
+    exec <space>G %arg{2} <a-\;>s( %arg{1} )|\n<ret> ) <a-:>
     easy-motion-on-selections %arg{2} %arg{3} %arg{4}
 
     hook window -once NormalKey .* %{
@@ -85,9 +85,14 @@ pydef 'easy-motion-on-selections -params ..3' '%opt{em_jumpchars}^%val{timestamp
     if len(jumpchars) <= 1:
         return 'fail em_jumpchars needs length at least two'
     import re
-    descs = re.split("[^\d,.]+", descs)
+    descs = [[[int(x) for x in lc.split('.')] for lc in desc.split(',')]
+                for desc in re.split(r"[^\d,.]+", descs)]
     from collections import OrderedDict, defaultdict
     jumpchars = list(OrderedDict.fromkeys(jumpchars))
+    line_lens = defaultdict(int)
+    for _, (l, c) in descs:
+        line_lens[l] = max(line_lens[l], c)
+    descs = [d for d in descs if d[1][1] != line_lens[d[1][0]]]
     if direction == 't':
         descs.reverse()
     fg = timestamp
@@ -103,15 +108,16 @@ pydef 'easy-motion-on-selections -params ..3' '%opt{em_jumpchars}^%val{timestamp
     fgs = dict()
     def q(s):
         return "'" + s.replace("'", "''") + "'"
-    for chars, desc in zip(cs, descs):
-        a, h = desc.split(",")
-        l, c = a.split(".")
-        a2 = l + "." + str(int(c) + len(chars) - 1)
+    for chars, ((l, c), (l2, c2)) in zip(cs, descs):
+        clamp = lambda col: min(col, line_lens[l] - 1)
+        a = '%d.%d' % (l, c)
+        a2 = '%d.%d' % (l, clamp(c + len(chars) - 1))
+        desc = '%s,%d.%d' % (a, l2, c2)
         fg += " " + q(a + "," + a2 + "|{EasyMotionForeground}" + chars)
         for i in range(1,len(chars)):
             chars_i = chars[:i]
-            a1 = l + "." + str(int(c) + len(chars_i) - 1)
-            a12 = l + "." + str(int(c) + len(chars_i))
+            a1 = '%d.%d' % (l, clamp(c + len(chars_i) - 1))
+            a12 = '%d.%d' % (l, clamp(c + len(chars_i)))
             if chars_i not in fgs:
                 fgs[chars_i] = 'select ' + a + ',' + a + '; set window em_fg ' + timestamp
             fgs[chars_i] += " " + q(a + "," + a1 + "|{EasyMotionSelected}" + chars_i)

@@ -55,7 +55,7 @@ def easy-motion-on-regex -params 1..4 %{
     set-option window _scrolloff %opt{scrolloff}
     set-option window scrolloff 0,0
 
-    exec <space>G %arg{2} <a-\;>s %arg{1} <ret> ) <a-:>
+    exec <,>G %arg{2} <a-\;>s %arg{1} <ret> ) <a-:>
     easy-motion-on-selections %arg{2} %arg{3} %arg{4}
 
     hook window -once NormalKey .* %{
